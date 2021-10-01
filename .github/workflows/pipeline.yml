@@ -1,12 +1,12 @@
 on:
-  pull_request:
-
   push:
     branches:
       - main
-
-  tags:
+    tags:
       - '*'
+  pull_request:
+    branches:
+      - main
 
 name: CI/CD
 
