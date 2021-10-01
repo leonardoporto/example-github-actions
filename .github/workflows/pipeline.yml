@@ -1,0 +1,57 @@
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+name: CI/CD
+
+jobs:
+  lint:
+    name: code analysis
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Setup NodeJS
+        uses: actions/setup-node@v1
+        with:
+          node-version: 16
+      - name: Install dependencies
+        run: npm install
+      - name: Lint
+        run: npm run lint
+        
+  tests:
+    name: tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Setup NodeJS
+        uses: actions/setup-node@v1
+        with:
+          node-version: 16
+      - name: Install dependencies
+        run: npm install
+      - name: Tests
+        run: npm run test
+
+  build:
+    name: build
+    needs: [lint, tests]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      
+      - name: Set Image Tag
+        id: vars
+        run: echo "::set-output name=sha_short::$(git rev-parse --short HEAD)"
+      
+      - name: Build
+        id: build-image
+        env:
+          IMAGE_TAG: staging-${{ steps.vars.outputs.sha_short }}
+        run: |
+          docker build . --file Dockerfile --tag my-image:$IMAGE_TAG
